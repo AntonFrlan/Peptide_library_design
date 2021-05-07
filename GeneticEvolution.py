@@ -1,5 +1,6 @@
 from util import RouletteWheel, SortByFitness
 
+
 class GemeticEvolution:
     def __init__(
             self,
@@ -15,7 +16,6 @@ class GemeticEvolution:
         self.mutation_probability = mutation_probability
         self.num_generations = num_generations
 
-
     def calculate(self, iterations):
         population = self.GenerateRandomPopulation()
         fitness_scores = self.EvaluatePopulation(population)
@@ -24,22 +24,15 @@ class GemeticEvolution:
         GeneratioNumber = 1
 
         while self.CheckStoppingCondition(population) and GeneratioNumber <= iterations:
-
             print('Generation: {}/{}'.format(GeneratioNumber, self.num_generations))
 
-            offspring = self.CreateChildren(population, fitness_scores)
-
-            # Add offspring to the current population.
-            population += offspring
+            population = self.CreateChildren(population, fitness_scores)
 
             fitness_scores = self.EvaluatePopulation(population)
 
-            # Select best individuals for the next generation.
-            population = self.Selection(population, fitness_scores)
-
             max_fitness_list.append(self.fitness_function(population[-1]))
             # TODO ako se nismo unaprijedili X generacija treba napraviti NeighbourhoodSearch
-            # solution = self.NeighbourhoodSearch(population)
+            # solution = self.NeighbourhoodSearch(population[:20])
             # if solution is not None:
             #     return(solution, self.fitness_function(solution) ,max_fitness_list)
             GeneratioNumber += 1
@@ -50,11 +43,9 @@ class GemeticEvolution:
 
         return (solution, distance, max_fitness_list)
 
-
     def GenerateRandomPopulation(self):
         # TODO generate population
         return ...
-
 
     def EvaluatePopulation(self, population):
         fitness_scores = []
@@ -78,6 +69,6 @@ class GemeticEvolution:
 
         return list(sorted_population[-self.population_size:])
 
-    def NeighbourhoodSearch(self, population):
-        # TODO NeighbourhoodSearch
+    def NeighbourhoodSearch(self, population):  # Anton
+        # TODO NeighbourhoodSearch na X najboljih
         return None
