@@ -2,7 +2,8 @@ from random import random
 
 
 class Peptoid:
-    CONST_GENES = "ABC"
+
+    CONST_GENES = "ACDEFGHIKLMNPQRSTVWY"
     CONST_GENE_TYPES = 20
 
     def __init__(self, sequence, label):

@@ -1,9 +1,7 @@
 import GeneticEvolution
 import csv
 import os
-
-CONST_PEPTIDE_MIN = 2
-CONST_PEPTIDE_MAX = 50
+from const.peptide_const import peptide_const as pc
 
 
 def load_data(file):
