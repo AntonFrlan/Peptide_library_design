@@ -1,7 +1,7 @@
 import enum
 
 
-class peptide_const(enum.Enum):
+class peptide_const(enum.auto):
 
     CONST_PEPTIDE_MIN = 2
     CONST_PEPTIDE_MAX = 50
