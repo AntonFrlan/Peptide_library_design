@@ -1,3 +1,7 @@
+import random
+
+import numpy as np
+from const.peptide_const import peptide_const as pc
 from util import RouletteWheel, SortByFitness
 
 
@@ -44,8 +48,15 @@ class GemeticEvolution:
         return (solution, distance, max_fitness_list)
 
     def GenerateRandomPopulation(self):
-        # TODO generate population
-        return ...
+        population = []
+        fitness_score = np.zeros(pc.CONST_GENE_TYPES) + 1. / pc.CONST_GENE_TYPES
+        for i in range(self.population_size):
+            gene_size = round(random.random() * pc.CONST_PEPTIDE_MAX_LENGTH)
+            gene = ""
+            for j in range(gene_size):
+                gene += pc.CONST_GENES[RouletteWheel(fitness_score)]
+            population.append(gene)
+        return population
 
     def EvaluatePopulation(self, population):
         fitness_scores = []
