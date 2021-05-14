@@ -2,6 +2,7 @@ import GeneticEvolution
 import csv
 import os
 from const.peptide_const import peptide_const as pc
+import machine_learning as ml
 
 
 def load_data(file):
@@ -10,9 +11,9 @@ def load_data(file):
         line_count = 0
         data = []
         for row in csv_reader:
-            if line_count == 0:
-                pass
+            if line_count == 0 or len(row[0]) > 50:
                 line_count += 1
+                pass
             else:
                 data.append({"sequence": row[0], "label": row[1]})
                 line_count += 1
@@ -20,8 +21,8 @@ def load_data(file):
     return data
 
 
-def machineLearning():  # Anton
-    print("TODO")
+def machineLearning(file_path):  # Anton
+    ml.calculate(load_data(file_path))
 
 
 def Petra():  # Petra
@@ -35,4 +36,4 @@ def geneticEvolution():
 if __name__ == '__main__':
     print("Peekaboo :D")
     file_path = os.path.join(os.getcwd(), "generated_datasets", "antimicrobial.csv")
-    data = load_data(file_path)
+    machineLearning(file_path)

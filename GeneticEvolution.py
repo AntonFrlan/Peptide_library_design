@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 from const.peptide_const import peptide_const as pc
-from util import RouletteWheel, SortByFitness
+from util.util import RouletteWheel, SortByFitness
 
 
 class GemeticEvolution:

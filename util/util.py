@@ -43,4 +43,5 @@ def save_fig(fig_id, img_path=os.path.join(os.getcwd(), "images"), tight_layout=
     print("Saving figure", fig_id)
     if tight_layout:
         plt.tight_layout()
+    plt.title(fig_id)
     plt.savefig(path, format=fig_extension, dpi=resolution)
