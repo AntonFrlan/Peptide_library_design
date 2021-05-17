@@ -1,4 +1,4 @@
-import GeneticEvolution
+import GeneticEvolution as ge
 import csv
 import os
 from const.peptide_const import peptide_const as pc
@@ -34,6 +34,6 @@ def geneticEvolution():
 
 
 if __name__ == '__main__':
-    print("Peekaboo :D")
     file_path = os.path.join(os.getcwd(), "generated_datasets", "antimicrobial.csv")
     machineLearning(file_path)
+    gene = ge.GeneticEvolution(ml.fitness_function, ml.return_model(), 1000, 1000, 0.05, 10000)

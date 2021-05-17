@@ -17,7 +17,7 @@ def nn(data, file_name=""):
 
     keras.backend.clear_session()
     model = keras.models.Sequential()
-    model.add(keras.layers.Flatten(input_shape=sequence[0].shape))
+    model.add(keras.layers.InputLayer(input_shape=sequence[0].shape))
     model.add(keras.layers.Dense(300, activation="sigmoid"))
     model.add(keras.layers.Dense(150, activation="sigmoid"))
     model.add(keras.layers.Dense(50, activation="sigmoid"))
@@ -40,17 +40,25 @@ def nn(data, file_name=""):
     model.save(filepath)
 
 
-def test(data):
+def return_model():
     filepath = os.path.join(os.getcwd(), "models", "model.h5")
-    model = keras.models.load_model(filepath)
-    print(model.summary)
+    return keras.models.load_model(filepath)
 
 
 def calculate(original_data):
     data = adjust_data_onehot(original_data)
-    #nn(data, "onehot")
-    test(data[0][9001])
+    nn(data, "onehot")
+    fitness_function(data[0][:3], return_model())
     #data = adjust_data(original_data, scale_data_normal)
     #nn(data, "normal")
     #data = adjust_data(original_data, scale_data_uniform)
     #nn(data, "uniform")
+
+
+def fitness_function(data, model):
+    fitness = []
+    for peptid in data:
+        peptid = peptid.reshape(-1, 1000)
+        fitness.append(model.predict(peptid))
+    return fitness
+

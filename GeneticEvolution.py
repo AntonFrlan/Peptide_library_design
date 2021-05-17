@@ -5,16 +5,18 @@ from const.peptide_const import peptide_const as pc
 from util.util import RouletteWheel, SortByFitness
 
 
-class GemeticEvolution:
+class GeneticEvolution:
     def __init__(
             self,
             fitness_function,
+            model,
             population_size,
             offspring_size,
             mutation_probability,
             num_generations
     ):
         self.fitness_function = fitness_function
+        self.model = model
         self.population_size = population_size
         self.offspring_size = offspring_size
         self.mutation_probability = mutation_probability
