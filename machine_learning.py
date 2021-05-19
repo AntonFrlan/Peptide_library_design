@@ -50,6 +50,10 @@ def return_model():
 def calculate(original_data):
     data = adjust_data_onehot(original_data)
     nn(data, "onehot")
+    test = [original_data[15]["sequence"], original_data[169]["sequence"]]
+    print(test)
+    print(test[0], fitness_function(test[0], return_model()))
+    print(test[1], fitness_function(test[1], return_model()))
     #fitness_function(data[0][:3], return_model())
     #data = adjust_data(original_data, scale_data_normal)
     #nn(data, "normal")
@@ -58,10 +62,8 @@ def calculate(original_data):
 
 
 def fitness_function(data, model):
-    fitness = []
-    data = adjust_data_onehot(data)
-    for peptid in data:
-        peptid = peptid.reshape(-1, 1000)
-        fitness.append(model.predict(peptid))
-    return fitness
+    data = [{"sequence": data}]
+    data = adjust_data_onehot(data, False)[0]
+    data = data.reshape(-1, 1000)
+    return model.predict(data)
 

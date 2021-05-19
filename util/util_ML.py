@@ -41,17 +41,17 @@ def adjust_data(old_data, scale):
     return data_seq, data_lab
 
 
-def adjust_data_onehot(old_data):
+def adjust_data_onehot(old_data, label=True):
     data_seq = np.zeros(shape=[len(old_data), 1000], dtype=int)
     data_lab = np.zeros(shape=[len(old_data), 1], dtype=int)
     char_to_int = dict((c, i) for i, c in enumerate(pc.CONST_GENES))
     br = -1
 
-    for peptide in old_data:
+    for peptide in range(len(old_data)):
         new_seq = np.zeros([pc.CONST_PEPTIDE_MAX_LENGTH, pc.CONST_GENE_TYPES], dtype=int)
         for i in range(pc.CONST_PEPTIDE_MAX_LENGTH):
             try:
-                value = [char_to_int[char] for char in peptide["sequence"][i]]
+                value = [char_to_int[char] for char in old_data[peptide]["sequence"][i]]
                 onehot_encoded = [0 for _ in range(pc.CONST_GENE_TYPES)]
                 onehot_encoded[value[0]] = 1
                 new_seq[i] = onehot_encoded
@@ -59,6 +59,6 @@ def adjust_data_onehot(old_data):
                 break
         br += 1
         data_seq[br] = new_seq.flatten()
-        if peptide["label"] == "1":
+        if label and old_data[peptide]["label"] == "1":
             data_lab[br] = 1
     return data_seq, data_lab

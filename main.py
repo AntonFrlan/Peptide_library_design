@@ -21,16 +21,8 @@ def load_data(file):
     return data
 
 
-def machineLearning(file_path):  # Anton
+def machineLearning(file_path):
     ml.calculate(load_data(file_path))
-
-
-def Petra():  # Petra
-    print("TODO")
-
-
-def geneticEvolution():
-    print("TODO")
 
 
 if __name__ == '__main__':

@@ -22,14 +22,14 @@ class GeneticEvolution:
         self.mutation_probability = mutation_probability
         self.num_generations = num_generations
 
-    def calculate(self, iterations):
+    def calculate(self):
         population = self.GenerateRandomPopulation()
         fitness_scores = self.EvaluatePopulation(population)
 
         max_fitness_list = []
         GeneratioNumber = 1
 
-        while self.CheckStoppingCondition(population) and GeneratioNumber <= iterations:
+        while self.CheckStoppingCondition(population) and GeneratioNumber <= self.num_generations:
             print('Generation: {}/{}'.format(GeneratioNumber, self.num_generations))
 
             population = self.CreateChildren(population, fitness_scores)
