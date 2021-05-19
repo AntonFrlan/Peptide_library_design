@@ -33,9 +33,11 @@ def nn(data, file_name=""):
     pd.DataFrame(history.history).plot(figsize=(8, 5))
     plt.grid(True)
     plt.gca().set_ylim(0, 1)
-    save_fig("300_150_50" + file_name)
+    save_fig("300_150_50_1" + file_name)
 
-    print(model.evaluate(sequence, label))
+    print("train", model.evaluate(sequence_train, label_train))
+    print("valid", model.evaluate(sequence_valid, label_valid))
+    print("sve", model.evaluate(sequence, label))
     filepath = os.path.join(os.getcwd(), "models", "model.h5")
     model.save(filepath)
 
@@ -48,7 +50,7 @@ def return_model():
 def calculate(original_data):
     data = adjust_data_onehot(original_data)
     nn(data, "onehot")
-    fitness_function(data[0][:3], return_model())
+    #fitness_function(data[0][:3], return_model())
     #data = adjust_data(original_data, scale_data_normal)
     #nn(data, "normal")
     #data = adjust_data(original_data, scale_data_uniform)
@@ -57,6 +59,7 @@ def calculate(original_data):
 
 def fitness_function(data, model):
     fitness = []
+    data = adjust_data_onehot(data)
     for peptid in data:
         peptid = peptid.reshape(-1, 1000)
         fitness.append(model.predict(peptid))
