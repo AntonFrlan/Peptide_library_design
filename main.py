@@ -7,4 +7,4 @@ if __name__ == '__main__':
     file_path = os.path.join(os.getcwd(), "generated_datasets", "antimicrobial.csv")
     data = load_data(file_path)
     model = ml.calculate(data)
-    ge(ml.fitness_function, model, 1000, 1000, 0.05, 10000).calculate()
+    ge(ml.fitness_function, model).calculate()

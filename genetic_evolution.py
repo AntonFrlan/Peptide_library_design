@@ -9,10 +9,10 @@ class GeneticEvolution:
             self,
             fitness_function,
             model,
-            population_size,
-            offspring_size,
-            mutation_probability,
-            num_generations
+            population_size=1000,
+            offspring_size=1000,
+            mutation_probability=0.05,
+            num_generations=10000
     ):
         self.fitness_function = fitness_function
         self.model = model
