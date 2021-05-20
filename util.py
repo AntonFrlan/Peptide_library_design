@@ -1,5 +1,41 @@
 import numpy as np
-from const.peptide_const import peptide_const as pc
+import os
+import matplotlib.pyplot as plt
+import csv
+from constants import PeptideConstants as pc
+
+
+def load_data(file_path):
+    with open(file_path) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        data = []
+        for row in csv_reader:
+            if line_count == 0 or len(row[0]) > 50:
+                line_count += 1
+                pass
+            else:
+                data.append({"sequence": row[0], "label": row[1]})
+                line_count += 1
+        print(f'Processed {line_count - 1} lines. In data {len(data)}')
+    return data
+
+
+def save_fig(file_name):
+    path = os.path.join(os.getcwd(), "images", file_name + ".png")
+    plt.tight_layout()
+    plt.title(file_name)
+    plt.savefig(path, format="png", dpi=300)
+
+
+def binary_search(arr, low, high, x):
+    while low + 1 < high:
+        mid = (high + low) // 2
+        if arr[mid] > x:
+            high = mid
+        else:
+            low = mid
+    return low
 
 
 def scale_data_uniform(array):

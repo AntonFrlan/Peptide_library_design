@@ -1,19 +1,30 @@
-from util.util_ML import adjust_data, adjust_data_onehot, scale_data_normal, scale_data_uniform
-import tensorflow as tf
 from tensorflow import keras
 import pandas as pd
 import matplotlib.pyplot as plt
-from util.util import save_fig
+from util import save_fig, adjust_data_onehot
 import os
 
 
-def nn(data, file_name=""):
-    print("TensorFlow version is ", tf.__version__)
-    print("Keras version is ", keras.__version__)
-    num_validation_data = 1500
+def calculate(original_data=None):
+    if original_data is not None:
+        data = adjust_data_onehot(original_data)
+        return neural_network(data, 1500, "onehot")
+    else:
+        filepath = os.path.join(os.getcwd(), "models", "model.h5")
+        return keras.models.load_model(filepath)
+
+
+def fitness_function(data, model):
+    data = [{"sequence": data}]
+    data = adjust_data_onehot(data, False)[0]
+    data = data.reshape(-1, 1000)
+    return model.predict(data)
+
+
+def neural_network(data, validation_data_len, file_name="", test_model=False):
     sequence, label = data
-    sequence_train, label_train = sequence[:-num_validation_data], label[:-num_validation_data]
-    sequence_valid, label_valid = sequence[len(sequence) - num_validation_data:], label[len(sequence) - num_validation_data:]
+    sequence_train, label_train = sequence[:-validation_data_len], label[:-validation_data_len]
+    sequence_valid, label_valid = sequence[len(sequence) - validation_data_len:], label[len(sequence) - validation_data_len:]
 
     keras.backend.clear_session()
     model = keras.models.Sequential()
@@ -29,41 +40,16 @@ def nn(data, file_name=""):
 
     history = model.fit(sequence_train, label_train, epochs=10, batch_size=32, workers=1,
                         validation_data=(sequence_valid, label_valid), shuffle=True)
+    if test_model:
+        test(history.history, file_name)
 
-    pd.DataFrame(history.history).plot(figsize=(8, 5))
-    plt.grid(True)
-    plt.gca().set_ylim(0, 1)
-    save_fig("300_150_50_1" + file_name)
-
-    print("train", model.evaluate(sequence_train, label_train))
-    print("valid", model.evaluate(sequence_valid, label_valid))
-    print("sve", model.evaluate(sequence, label))
     filepath = os.path.join(os.getcwd(), "models", "model.h5")
     model.save(filepath)
+    return model
 
 
-def return_model():
-    filepath = os.path.join(os.getcwd(), "models", "model.h5")
-    return keras.models.load_model(filepath)
-
-
-def calculate(original_data):
-    data = adjust_data_onehot(original_data)
-    nn(data, "onehot")
-    test = [original_data[15]["sequence"], original_data[169]["sequence"]]
-    print(test)
-    print(test[0], fitness_function(test[0], return_model()))
-    print(test[1], fitness_function(test[1], return_model()))
-    #fitness_function(data[0][:3], return_model())
-    #data = adjust_data(original_data, scale_data_normal)
-    #nn(data, "normal")
-    #data = adjust_data(original_data, scale_data_uniform)
-    #nn(data, "uniform")
-
-
-def fitness_function(data, model):
-    data = [{"sequence": data}]
-    data = adjust_data_onehot(data, False)[0]
-    data = data.reshape(-1, 1000)
-    return model.predict(data)
-
+def test(train_data, file_name):
+    pd.DataFrame(train_data).plot(figsize=(8, 5))
+    plt.grid(True)
+    plt.gca().set_ylim(0, 1)
+    save_fig("300_150_50_1_" + file_name)
