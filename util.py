@@ -66,8 +66,8 @@ def scale_data_normal(array):
 
 
 def adjust_data(old_data, scale):
-    data_seq = np.empty(shape=[10341, pc.CONST_PEPTIDE_MAX_LENGTH], dtype=float)
-    data_lab = np.empty(shape=[10341, 1], dtype=float)
+    data_seq = np.empty(shape=[len(old_data), pc.CONST_PEPTIDE_MAX_LENGTH], dtype=float)
+    data_lab = np.empty(shape=[len(old_data), 1], dtype=float)
     br = -1
     for peptide in old_data:
         br += 1
