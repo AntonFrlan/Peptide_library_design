@@ -9,33 +9,36 @@ class GeneticEvolution:
             self,
             fitness_function,
             model,
-            population_size=1000,
-            offspring_size=1000,
+            population_size=100,
             mutation_probability=0.05,
             num_generations=10000
     ):
         self.fitness_function = fitness_function
         self.model = model
         self.population_size = population_size
-        self.offspring_size = offspring_size
         self.mutation_probability = mutation_probability
         self.num_generations = num_generations
 
     def calculate(self):
         population = self.generate_random_population()
         fitness_scores = self.evaluate_population(population)
+        population, fitness_scores = sort_by_fitness(population, fitness_scores)
 
         max_fitness_list = []
         generation_number = 1
+        print(population[0], population[-1])
+        print(self.fitness_function(population[0], self.model), self.fitness_function(population[-1], self.model),
+              generation_number)
 
-        while self.check_stopping_condition(population) and generation_number <= self.num_generations:
+        while self.check_stopping_condition(fitness_scores) and generation_number <= self.num_generations:
             print('Generation: {}/{}'.format(generation_number, self.num_generations))
+            print("Best: ", population[-1], fitness_scores[-1])
 
             population = self.create_children(population, fitness_scores)
-
             fitness_scores = self.evaluate_population(population)
+            population, fitness_scores = sort_by_fitness(population, fitness_scores)
 
-            max_fitness_list.append(self.fitness_function(population[-1]))
+            max_fitness_list.append(fitness_scores)
             # TODO ako se nismo unaprijedili X generacija treba napraviti NeighbourhoodSearch
             # solution = self.NeighbourhoodSearch(population[:20])
             # if solution is not None:
@@ -43,16 +46,20 @@ class GeneticEvolution:
             generation_number += 1
 
         # Last solution in the list is the one with best fitness score.
+        print(population[0], population[-1])
+        print(self.fitness_function(population[0], self.model), self.fitness_function(population[-1], self.model),
+              generation_number)
         solution = population[-1]
-        distance = self.fitness_function(solution)
+        distance = self.fitness_function(solution, self.model)
 
-        return solution, distance, max_fitness_list
+        return solution, distance  # , max_fitness_list
 
     def generate_random_population(self):
         population = []
         fitness_score = np.zeros(pc.CONST_GENE_TYPES) + 1. / pc.CONST_GENE_TYPES
         for i in range(self.population_size):
-            gene_size = round(random.random() * pc.CONST_PEPTIDE_MAX_LENGTH)
+            new_len = round(random.random() * pc.CONST_PEPTIDE_MAX_LENGTH)
+            gene_size = new_len if pc.CONST_PEPTIDE_MIN_LENGTH < new_len else pc.CONST_PEPTIDE_MIN_LENGTH
             gene = ""
             for j in range(gene_size):
                 gene += pc.CONST_GENES[roulette_wheel(fitness_score)]
@@ -63,27 +70,70 @@ class GeneticEvolution:
         fitness_scores = []
 
         for solution in population:
-            total_distance = self.fitness_function(solution)
+            total_distance = self.fitness_function(solution, self.model)
             fitness_scores.append(total_distance)
 
         return fitness_scores
 
-    def check_stopping_condition(self, population):
-        # TODO provjeri cilj
+    def check_stopping_condition(self, fitness_score):
+        for i in fitness_score:
+            if i >= 0.99:
+                return False
         return True
 
     def create_children(self, population, fitness_scores):
-        # TODO stvori djecu, uzmi top 20% od roditelja a ostalih 80% stvori krizanjem
-        return ...
+        kids = []
+        for i in population[round(self.population_size * 0.8):]:
+            kids.append(i)
+
+        while len(kids) < self.population_size:
+            parents = []
+            for j in range(2):
+                parents.append(population[roulette_wheel(fitness_scores)])
+            kid1, kid2 = self.create_siblings(parents)
+            kids.append(kid1)
+            kids.append(kid2)
+        return kids
+
+    def create_siblings(self, parents):
+        parent1, parent2 = parents
+        len1 = len(parent1)
+        len2 = len(parent2)
+        break_point = random.random()
+
+        point1 = round(len1 * break_point)
+        point2 = round(len2 * break_point)
+
+        kid1 = self.mutate(parent1[:point1] + parent2[point2:])
+        kid2 = self.mutate(parent2[:point2] + parent1[point1:])
+        return kid1, kid2
+
+    def mutate(self, kid):
+        if random.random() <= self.mutation_probability:
+            point = round(random.random() * len(kid)) - 1
+            kid = self.search(kid, point)
+
+        return kid
 
     def selection(self, population, fitness_scores):
         sorted_population, sorted_fitness_scores = sort_by_fitness(population, fitness_scores)
 
         return list(sorted_population[-self.population_size:])
 
+    def search(self, gene, point):
+        best = gene
+        score = 0
+        for i in pc.CONST_GENES:
+            if i != gene[point]:
+                new_gene = gene[:point] + i + gene[point + 1:] if point + 1 < len(gene) else gene[:point] + i
+                new_score = self.fitness_function(gene, self.model)
+                if score < new_score:
+                    best = new_gene
+        return best
+
     def neighbourhood_search(self, population):
-        # TODO NeighbourhoodSearch na X najboljih
-        return None
+        # TODO neighbourhood_search
+        return ...
 
 
 def sort_by_fitness(population, fitness_scores):
@@ -91,10 +141,10 @@ def sort_by_fitness(population, fitness_scores):
     merged_list.sort(key=lambda merged_list_member: merged_list_member[1])
 
     sorted_population, sorted_fitness_scores = zip(*merged_list)
-    sorted_fitness_scores = np.array(sorted_fitness_scores)+1
+    sorted_fitness_scores = np.array(sorted_fitness_scores)  # + 1
 
-    sorted_fitness_scores = sorted_fitness_scores / np.sum(sorted_fitness_scores)
-    sorted_fitness_scores = np.cumsum(sorted_fitness_scores)
+    # sorted_fitness_scores = sorted_fitness_scores / np.sum(sorted_fitness_scores)
+    # sorted_fitness_scores = np.cumsum(sorted_fitness_scores)
 
     return sorted_population, sorted_fitness_scores
 
