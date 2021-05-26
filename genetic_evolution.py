@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from constants import PeptideConstants as pc
-from util import binary_search
+from util import binary_search, mean
 
 
 class GeneticEvolution:
@@ -11,18 +11,25 @@ class GeneticEvolution:
             model,
             population_size=100,
             mutation_probability=0.05,
-            num_generations=10000
+            num_generations=10000,
+            stop=0.99,
+            neighbourhood_search_counter=5
     ):
         self.fitness_function = fitness_function
         self.model = model
         self.population_size = population_size
         self.mutation_probability = mutation_probability
         self.num_generations = num_generations
+        self.stop = stop
+        self.neighbourhood_search_counter = neighbourhood_search_counter
 
     def calculate(self):
         population = self.generate_random_population()
         fitness_scores = self.evaluate_population(population)
         population, fitness_scores = sort_by_fitness(population, fitness_scores)
+        avg_mean = mean(fitness_scores)
+        print(avg_mean)
+        neighbourhood_search_counter = 0
 
         max_fitness_list = []
         generation_number = 1
@@ -30,19 +37,27 @@ class GeneticEvolution:
         print(self.fitness_function(population[0], self.model), self.fitness_function(population[-1], self.model),
               generation_number)
 
-        while self.check_stopping_condition(fitness_scores) and generation_number <= self.num_generations:
+        while self.check_stopping_condition(fitness_scores[-1]) and generation_number <= self.num_generations:
             print('Generation: {}/{}'.format(generation_number, self.num_generations))
             print("Best: ", population[-1], fitness_scores[-1])
 
             population = self.create_children(population, fitness_scores)
             fitness_scores = self.evaluate_population(population)
             population, fitness_scores = sort_by_fitness(population, fitness_scores)
+            fitness_mean = mean(fitness_scores)
+            print(fitness_mean)
 
-            max_fitness_list.append(fitness_scores)
-            # TODO ako se nismo unaprijedili X generacija treba napraviti NeighbourhoodSearch
-            # solution = self.NeighbourhoodSearch(population[:20])
-            # if solution is not None:
-            #     return(solution, self.fitness_function(solution) ,max_fitness_list)
+            # max_fitness_list.append(fitness_scores)
+            if abs(avg_mean - fitness_mean) < 0.00001:
+                neighbourhood_search_counter += 1
+                if self.neighbourhood_search_counter < neighbourhood_search_counter:
+                    neighbourhood_search_counter = 0
+                    solution = self.neighbourhood_search(population[round(self.population_size * 0.8):])
+                    if solution is not None:
+                        return solution, self.fitness_function(solution)  # ,max_fitness_list
+            else:
+                neighbourhood_search_counter = 0
+            avg_mean = (avg_mean + fitness_mean) / 2
             generation_number += 1
 
         # Last solution in the list is the one with best fitness score.
@@ -76,9 +91,8 @@ class GeneticEvolution:
         return fitness_scores
 
     def check_stopping_condition(self, fitness_score):
-        for i in fitness_score:
-            if i >= 0.99:
-                return False
+        if fitness_score >= self.stop:
+            return False
         return True
 
     def create_children(self, population, fitness_scores):
@@ -132,8 +146,36 @@ class GeneticEvolution:
         return best
 
     def neighbourhood_search(self, population):
-        # TODO neighbourhood_search
-        return ...
+        print("ULAZIM U NEIGHBOURHOOD_SERACH")
+        for pop in population:
+            neighbour = self.bfs(pop)
+            if neighbour is not None:
+                return neighbour
+        print("NISAM NASAO RJESENJE :,(")
+        return None
+
+    def bfs(self, pop):
+        pop_len = len(pop)
+        for point in range(pop_len):
+            for amino in pc.CONST_GENES:
+                new_gene = pop[:point] + amino + pop[point + 1:] if point + 1 < pop_len else pop[:point] + amino
+                score = self.fitness_function(new_gene, self.model)
+                if not self.check_stopping_condition(score):
+                    return new_gene
+        return None
+
+    def dfs(self, pop):
+        pop_len = len(pop)
+        pop_score = 0
+        for point in range(pop_len):
+            for amino in pc.CONST_GENES:
+                new_gene = pop[:point] + amino + pop[point + 1:] if point + 1 < pop_len else pop[:point] + amino
+                new_gene_score = self.fitness_function(new_gene, self.model)
+                if not self.check_stopping_condition(new_gene_score):
+                    return new_gene
+                if pop_score < new_gene_score:
+                    pop = new_gene
+        return None
 
 
 def sort_by_fitness(population, fitness_scores):

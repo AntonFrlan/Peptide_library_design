@@ -98,3 +98,7 @@ def adjust_data_onehot(old_data, label=True):
         if label and old_data[peptide]["label"] == "1":
             data_lab[br] = 1
     return data_seq, data_lab
+
+
+def mean(array):
+    return float(sum(array)) / len(array)
