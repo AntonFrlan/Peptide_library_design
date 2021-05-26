@@ -113,14 +113,16 @@ class GeneticEvolution:
         parent1, parent2 = parents
         len1 = len(parent1)
         len2 = len(parent2)
-        break_point = random.random()
+        while True:
+            break_point = random.random()
 
-        point1 = round(len1 * break_point)
-        point2 = round(len2 * break_point)
+            point1 = round(len1 * break_point)
+            point2 = round(len2 * break_point)
 
-        kid1 = self.mutate(parent1[:point1] + parent2[point2:])
-        kid2 = self.mutate(parent2[:point2] + parent1[point1:])
-        return kid1, kid2
+            kid1 = self.mutate(parent1[:point1] + parent2[point2:])
+            kid2 = self.mutate(parent2[:point2] + parent1[point1:])
+            if 2 <= len(kid1) <= 50 and 2 <= len(kid2) <= 50:
+                return kid1, kid2
 
     def mutate(self, kid):
         if random.random() <= self.mutation_probability:
