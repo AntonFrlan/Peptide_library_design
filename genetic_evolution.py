@@ -125,8 +125,7 @@ class GeneticEvolution:
     def mutate(self, kid):
         if random.random() <= self.mutation_probability:
             point = round(random.random() * len(kid)) - 1
-            kid = self.search(kid, point)
-
+            kid = self.search(kid, point)[0]  # it returns gene and its score
         return kid
 
     def selection(self, population, fitness_scores):
@@ -142,8 +141,9 @@ class GeneticEvolution:
                 new_gene = gene[:point] + i + gene[point + 1:] if point + 1 < len(gene) else gene[:point] + i
                 new_score = self.fitness_function(gene, self.model)
                 if score < new_score:
+                    score = new_score
                     best = new_gene
-        return best
+        return best, score
 
     def neighbourhood_search(self, population):
         for pop in population:
@@ -155,25 +155,18 @@ class GeneticEvolution:
     def bfs(self, pop):
         pop_len = len(pop)
         for point in range(pop_len):
-            for amino in pc.CONST_GENES:
-                new_gene = pop[:point] + amino + pop[point + 1:] if point + 1 < pop_len else pop[:point] + amino
-                new_gene_score = self.fitness_function(new_gene, self.model)
-                if not self.check_stopping_condition(new_gene_score):
-                    return new_gene
+            new_gene, new_gene_score = self.search(pop, point)
+            if not self.check_stopping_condition(new_gene_score):
+                return new_gene
         return None
 
     def dfs(self, pop):
         pop_len = len(pop)
-        pop_score = 0
+        new_gene = pop
         for point in range(pop_len):
-            for amino in pc.CONST_GENES:
-                new_gene = pop[:point] + amino + pop[point + 1:] if point + 1 < pop_len else pop[:point] + amino
-                new_gene_score = self.fitness_function(new_gene, self.model)
-                if not self.check_stopping_condition(new_gene_score):
-                    return new_gene
-                if pop_score < new_gene_score:
-                    pop_score = new_gene_score
-                    pop = new_gene
+            new_gene, new_gene_score = self.search(new_gene, point)
+            if not self.check_stopping_condition(new_gene_score):
+                return new_gene
         return None
 
 
