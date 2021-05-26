@@ -146,12 +146,10 @@ class GeneticEvolution:
         return best
 
     def neighbourhood_search(self, population):
-        print("ULAZIM U NEIGHBOURHOOD_SERACH")
         for pop in population:
-            neighbour = self.bfs(pop)
+            neighbour = self.dfs(pop)
             if neighbour is not None:
                 return neighbour
-        print("NISAM NASAO RJESENJE :,(")
         return None
 
     def bfs(self, pop):
@@ -159,8 +157,8 @@ class GeneticEvolution:
         for point in range(pop_len):
             for amino in pc.CONST_GENES:
                 new_gene = pop[:point] + amino + pop[point + 1:] if point + 1 < pop_len else pop[:point] + amino
-                score = self.fitness_function(new_gene, self.model)
-                if not self.check_stopping_condition(score):
+                new_gene_score = self.fitness_function(new_gene, self.model)
+                if not self.check_stopping_condition(new_gene_score):
                     return new_gene
         return None
 
@@ -174,6 +172,7 @@ class GeneticEvolution:
                 if not self.check_stopping_condition(new_gene_score):
                     return new_gene
                 if pop_score < new_gene_score:
+                    pop_score = new_gene_score
                     pop = new_gene
         return None
 
