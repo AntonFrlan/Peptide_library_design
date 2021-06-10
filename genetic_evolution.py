@@ -9,10 +9,10 @@ class GeneticEvolution:
             self,
             fitness_function,
             model,
-            population_size=100,
+            population_size=1000,
             mutation_probability=0.05,
             num_generations=10000,
-            stop=0.99,
+            stop=0.95,
             neighbourhood_search_counter=5
     ):
         self.fitness_function = fitness_function
@@ -48,7 +48,7 @@ class GeneticEvolution:
             print(fitness_mean)
 
             # max_fitness_list.append(fitness_scores)
-            if abs(avg_mean - fitness_mean) < 0.00001:
+            if fitness_mean - avg_mean < 0.0001:
                 neighbourhood_search_counter += 1
                 if self.neighbourhood_search_counter < neighbourhood_search_counter:
                     neighbourhood_search_counter = 0

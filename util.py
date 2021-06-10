@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -5,7 +7,21 @@ import csv
 from constants import PeptideConstants as pc
 
 
+def banalce_data(data, generate):
+    new_data = []
+    size = len(data) - 1
+    for i in range(generate):
+        point = round(random.random() * size)
+        new_data.append(data[point])
+    return new_data
+
+
 def load_data(file_path):
+    unbalanced = 0.50
+    pos, neg, label = 0, 0, 0
+    pos_data = []
+    neg_data = []
+    new_data = []
     with open(file_path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
@@ -17,6 +33,22 @@ def load_data(file_path):
             else:
                 data.append({"sequence": row[0], "label": row[1]})
                 line_count += 1
+                if int(row[1]) == 1:
+                    pos += 1
+                    pos_data.append(row[0])
+                else:
+                    neg += 1
+                    neg_data.append(row[0])
+        print("Positive data :", pos, "\nNegative data: ", neg)
+        if pos * unbalanced > neg:
+            new_data = banalce_data(neg_data, round(pos * unbalanced - neg))
+        elif neg * unbalanced > pos:
+            label = 1
+            new_data = banalce_data(pos_data, round(neg * unbalanced - pos))
+        for add in new_data:
+            data.append({"sequence": add, "label": label})
+
+        random.shuffle(data)
         print(f'Processed {line_count - 1} lines. In data {len(data)}')
     return data
 

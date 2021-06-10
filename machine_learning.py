@@ -38,16 +38,19 @@ def fitness_function(data, model):
     return model.predict(data)
 
 
-def neural_network(data, data_file="", validation_data_len=1500):
+def neural_network(data, data_file="", validation_data_len=0.1):
     peptide_type = data_file.split('.')[0]
 
     sequence, label = data
+    data_len = len(sequence)
+    validation_data_len = round(data_len * validation_data_len)
     sequence_train, label_train = sequence[:-validation_data_len], label[:-validation_data_len]
-    sequence_valid, label_valid = sequence[len(sequence) - validation_data_len:], label[len(sequence) - validation_data_len:]
+    sequence_valid, label_valid = sequence[data_len - validation_data_len:], label[data_len - validation_data_len:]
 
     keras.backend.clear_session()
     model = keras.models.Sequential()
     model.add(keras.layers.InputLayer(input_shape=sequence[0].shape))
+    model.add(keras.layers.Dense(20, activation="sigmoid"))
     model.add(keras.layers.Dense(10, activation="sigmoid"))
     model.add(keras.layers.Dense(1, activation="sigmoid"))
 
@@ -55,7 +58,7 @@ def neural_network(data, data_file="", validation_data_len=1500):
                   optimizer="adam",
                   metrics=["mean_absolute_error"])
 
-    history = model.fit(sequence_train, label_train, epochs=20, batch_size=32, workers=1,
+    history = model.fit(sequence_train, label_train, epochs=12, batch_size=32, workers=1,
                         validation_data=(sequence_valid, label_valid), shuffle=True)
     pd.DataFrame(history.history).plot(figsize=(8, 5))
     plt.grid(True)
