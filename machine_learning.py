@@ -3,10 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from util import save_fig, adjust_data_onehot
 import os
-from util import load_data
 
 
-def get_performance(data_file):
+def get_performance(data, data_file):
     peptide_type = data_file.split('.')[0]
     txt_path = os.path.join(os.getcwd(), "models", peptide_type + ".txt")
     try:
@@ -22,7 +21,7 @@ def get_performance(data_file):
             name, value = line.split(" , ")
             performance[name] = float(value)
     except:
-        performance = neural_network(1500, data_file)
+        performance = neural_network(data, data_file)
     return performance
 
 
@@ -39,9 +38,7 @@ def fitness_function(data, model):
     return model.predict(data)
 
 
-def neural_network(validation_data_len, data_file=""):
-    data_path = os.path.join(os.getcwd(), "generated_datasets", data_file)
-    data = adjust_data_onehot(load_data(data_path))
+def neural_network(data, data_file="", validation_data_len=1500):
     peptide_type = data_file.split('.')[0]
 
     sequence, label = data
