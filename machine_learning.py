@@ -1,12 +1,13 @@
+import inquirer
 from tensorflow import keras
 import pandas as pd
 import matplotlib.pyplot as plt
-from util import save_fig, adjust_data_onehot
+from inquirer import Path
+from util import save_fig, get_peptide_activities, adjust_data_onehot, load_data
 import os
 
 
-def get_performance(data, data_file):
-    peptide_type = data_file.split('.')[0]
+def get_performance(peptide_type):
     txt_path = os.path.join(os.getcwd(), "models", peptide_type + ".txt")
     try:
         file = open(txt_path, 'r')
@@ -20,27 +21,17 @@ def get_performance(data, data_file):
         for line in lines:
             name, value = line.split(" , ")
             performance[name] = float(value)
-    except:
-        performance = neural_network(data, data_file)
-    return performance
+        return performance
+    except FileNotFoundError:
+        return None
 
 
 def get_model(peptide_type):
-    peptide_type = peptide_type.split('.')[0]
     model_path = os.path.join(os.getcwd(), "models", peptide_type + ".h5")
     return keras.models.load_model(model_path)
 
 
-def fitness_function(data, model):
-    data = [{"sequence": data}]
-    data = adjust_data_onehot(data, False)[0]
-    data = data.reshape(-1, 1000)
-    return model.predict(data)
-
-
-def neural_network(data, data_file="", validation_data_len=0.1):
-    peptide_type = data_file.split('.')[0]
-
+def neural_network(data, peptide_type, validation_data_len=0.1):
     sequence, label = data
     data_len = len(sequence)
     validation_data_len = round(data_len * validation_data_len)
@@ -76,8 +67,33 @@ def neural_network(data, data_file="", validation_data_len=0.1):
 
     txt_path = os.path.join(os.getcwd(), "models", peptide_type + ".txt")
     file = open(txt_path, 'w')
-    lines = ["all , " + str(performance["all"]), "\ntrain , " + str(performance["train"]), "\nvalid , " + str(performance["valid"])]
+    lines = ["all , " + str(performance["all"]), "\ntrain , " + str(performance["train"]),
+             "\nvalid , " + str(performance["valid"])]
     for line in lines:
         file.write(line)
     file.close()
-    return performance
+
+
+if __name__ == '__main__':
+    choices = get_peptide_activities()
+    choices.append("Other (you will have to provide a dataset)")
+    activity_type = inquirer.list_input(message="Select peptide activity",
+                                        choices=choices)
+
+    if activity_type == "Other (you will have to provide a dataset)":
+        # LOL dakle ne smijes pogrijesiti prilikom upisivanja patha i imena.
+        # Ako pogriješiš ne radiš delete / go back nego terminiras program
+        # i pocinjes opet
+        questions = [inquirer.Path("data_path",
+                                   message="Enter training dataset path",
+                                   exists=True,
+                                   path_type=Path.FILE),
+                     inquirer.Text("model_name", message="Enter new model name")]
+        answers = inquirer.prompt(questions)
+        neural_network(adjust_data_onehot(load_data(answers["data_path"])),
+                       answers["model_name"])
+
+    p = get_performance(activity_type)
+    print("MODEL ACCURACY\n_______________")
+    if p is not None:
+        print(p)

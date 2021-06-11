@@ -1,5 +1,4 @@
 import random
-
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -7,7 +6,15 @@ import csv
 from constants import PeptideConstants as pc
 
 
-def banalce_data(data, generate):
+def get_peptide_activities():
+    files = os.listdir(os.path.join(os.getcwd(), "models"))
+    result = []
+    for f in files:
+        result.append(f.split('.')[0])
+    return result
+
+
+def balance_data(data, generate):
     new_data = []
     size = len(data) - 1
     for i in range(generate):
@@ -41,10 +48,10 @@ def load_data(file_path):
                     neg_data.append(row[0])
         print("Positive data :", pos, "\nNegative data: ", neg)
         if pos * unbalanced > neg:
-            new_data = banalce_data(neg_data, round(pos * unbalanced - neg))
+            new_data = balance_data(neg_data, round(pos * unbalanced - neg))
         elif neg * unbalanced > pos:
             label = 1
-            new_data = banalce_data(pos_data, round(neg * unbalanced - pos))
+            new_data = balance_data(pos_data, round(neg * unbalanced - pos))
         for add in new_data:
             data.append({"sequence": add, "label": label})
 
