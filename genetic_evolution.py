@@ -73,14 +73,10 @@ class GeneticEvolution:
             avg_mean = (avg_mean + fitness_mean) / 2
             generation_number += 1
 
-        # Last solution in the list is the one with best fitness score.
-        print(population[0], population[-1])
-        print(self.fitness_function(population[0]), self.fitness_function(population[-1]),
-              generation_number)
-        solution = population[-1]
-        distance = self.fitness_function(solution)
-
-        return solution, distance  # , max_fitness_list
+        index = next(i for i, fs in enumerate(fitness_scores) if fs > 0.93)
+        for i in range(index, len(population)):
+            print(population[i], fitness_scores[i])
+        return population[index:], fitness_scores[index:]
 
     def generate_random_population(self):
         population = []
