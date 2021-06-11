@@ -24,7 +24,7 @@ def balance_data(data, generate):
 
 
 def load_data(file_path):
-    unbalanced = 0.40
+    unbalanced = 0.30
     pos, neg, label = 0, 0, 0
     pos_data = []
     neg_data = []

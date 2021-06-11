@@ -18,7 +18,8 @@ class GeneticEvolution:
             stop=0.95,
             neighbourhood_search_counter=5,
             neighbourhood_search_percentage=0.05,  # amount of population in search
-            number_of_islands=5
+            number_of_islands=5,
+            elitism=0.1
     ):
         self.model = model
         self.population_size = population_size
@@ -28,6 +29,7 @@ class GeneticEvolution:
         self.neighbourhood_search_counter = neighbourhood_search_counter
         self.neighbourhood_search_percentage = 1 - neighbourhood_search_percentage
         self.number_of_islands = min(number_of_islands, mp.cpu_count())
+        self.elitism = 1 - elitism
         self.calculate()
 
     def fitness_function(self, peptide):
@@ -54,11 +56,12 @@ class GeneticEvolution:
             print("Best: ", population[-1], fitness_scores[-1], len(population))
             print("Search counter: ", neighbourhood_search_counter)
 
-            population = self.create_children(population, fitness_scores)
+            population, length = self.create_children(population, fitness_scores)
             fitness_scores = self.evaluate_population(population)
             population, fitness_scores = sort_by_fitness(population, fitness_scores)
             fitness_mean = mean(fitness_scores)
-            print(fitness_mean)
+            print("fitness_mean ", fitness_mean)
+            print("average length ", sum(length) / self.population_size)
 
             # max_fitness_list.append(fitness_scores)
             if fitness_mean - avg_mean < 0.001:
@@ -69,10 +72,12 @@ class GeneticEvolution:
                     solution = self.neighbourhood_search(population[round(self.population_size * self.neighbourhood_search_percentage):])
                     for pop in solution:
                         population.append(pop)
+                    print("IZASAO SAM")
             else:
                 neighbourhood_search_counter = 0
             avg_mean = (avg_mean + fitness_mean) / 2
             generation_number += 1
+            print()
 
         # Last solution in the list is the one with best fitness score.
         print(population[0], population[-1])
@@ -110,38 +115,43 @@ class GeneticEvolution:
         return True
 
     def create_children(self, population, fitness_scores):
+        print("CREATE CHILDREN")
         kids = []
-        for i in population[round(self.population_size * 0.8):]:
+        for i in population[round(self.population_size * self.elitism):]:
             kids.append(i)
 
+        lengths = []
         while len(kids) < self.population_size:
             parents = []
             parents.append(population[roulette_wheel(fitness_scores)])
             parents.append(population[roulette_wheel(fitness_scores)])
             if parents[0] != parents[1]:
-                kid1, kid2 = self.create_siblings(parents)
-                kids.append(kid1)
-                kids.append(kid2)
-        return kids
+                kid, length = self.create_siblings(parents)
+                kids.append(kid)
+                lengths.append(length)
+                #kids.append(kid2)
+        print("DONE WITH CHILDREN")
+        return list(kids), lengths
 
     def create_siblings(self, parents):
         parent1, parent2 = parents
         len1 = len(parent1)
         len2 = len(parent2)
         while True:
-            break_point = random.random()
+            break_point1 = random.random()
+            break_point2 = random.random()
 
-            point1 = round(len1 * break_point)
-            point2 = round(len2 * break_point)
-
-            kid1 = self.mutate(parent1[:point1] + parent2[point2:])
-            kid2 = self.mutate(parent2[:point2] + parent1[point1:])
-            if 2 <= len(kid1) <= 50 and 2 <= len(kid2) <= 50:
-                return kid1, kid2
+            point1 = round(len1 * break_point1)
+            point2 = round(len2 * break_point2)
+            kid = parent1[:point1] + parent2[point2:]
+            length = len(kid)
+            if 2 <= length <= 50:
+                kid = self.mutate(kid)
+                return kid, length
 
     def mutate(self, kid):
         if random.random() <= self.mutation_probability:
-            point = round(random.random() * len(kid)) - 1
+            point = round(random.random() * (len(kid) - 1))
             kid = self.search(kid, point)[0]  # it returns gene and its score
         return kid
 
