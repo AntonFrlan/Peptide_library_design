@@ -194,7 +194,7 @@ class GeneticEvolution:
             if pop_score < new_gene_score and pop != new_gene:
                 new_pop = new_gene
                 pop_score = new_gene_score
-        return new_pop, pop_score
+        return new_pop
 
 
 def sort_by_fitness(population, fitness_scores):
