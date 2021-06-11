@@ -17,7 +17,7 @@ def banalce_data(data, generate):
 
 
 def load_data(file_path):
-    unbalanced = 0.50
+    unbalanced = 0.40
     pos, neg, label = 0, 0, 0
     pos_data = []
     neg_data = []

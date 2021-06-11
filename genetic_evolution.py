@@ -2,6 +2,7 @@ import random
 import numpy as np
 from constants import PeptideConstants as pc
 from util import binary_search, mean
+import multiprocessing as mp
 
 
 class GeneticEvolution:
@@ -9,11 +10,13 @@ class GeneticEvolution:
             self,
             fitness_function,
             model,
-            population_size=1000,
+            population_size=100,
             mutation_probability=0.05,
             num_generations=10000,
             stop=0.95,
-            neighbourhood_search_counter=5
+            neighbourhood_search_counter=5,
+            neighbourhood_search_percentage=0.05,  # amount of population in search
+            number_of_islands=5
     ):
         self.fitness_function = fitness_function
         self.model = model
@@ -22,6 +25,8 @@ class GeneticEvolution:
         self.num_generations = num_generations
         self.stop = stop
         self.neighbourhood_search_counter = neighbourhood_search_counter
+        self.neighbourhood_search_percentage = 1 - neighbourhood_search_percentage
+        self.number_of_islands = min(number_of_islands, mp.cpu_count())
 
     def calculate(self):
         population = self.generate_random_population()
@@ -39,7 +44,8 @@ class GeneticEvolution:
 
         while self.check_stopping_condition(fitness_scores[-1]) and generation_number <= self.num_generations:
             print('Generation: {}/{}'.format(generation_number, self.num_generations))
-            print("Best: ", population[-1], fitness_scores[-1])
+            print("Best: ", population[-1], fitness_scores[-1], len(population))
+            print("Search counter: ", neighbourhood_search_counter)
 
             population = self.create_children(population, fitness_scores)
             fitness_scores = self.evaluate_population(population)
@@ -48,13 +54,14 @@ class GeneticEvolution:
             print(fitness_mean)
 
             # max_fitness_list.append(fitness_scores)
-            if fitness_mean - avg_mean < 0.0001:
+            if fitness_mean - avg_mean < 0.001:
                 neighbourhood_search_counter += 1
                 if self.neighbourhood_search_counter < neighbourhood_search_counter:
+                    print("USAO SAM")
                     neighbourhood_search_counter = 0
-                    solution = self.neighbourhood_search(population[round(self.population_size * 0.8):])
-                    if solution is not None:
-                        return solution, self.fitness_function(solution)  # ,max_fitness_list
+                    solution = self.neighbourhood_search(population[round(self.population_size * self.neighbourhood_search_percentage):])
+                    for pop in solution:
+                        population.append(pop)
             else:
                 neighbourhood_search_counter = 0
             avg_mean = (avg_mean + fitness_mean) / 2
@@ -102,11 +109,12 @@ class GeneticEvolution:
 
         while len(kids) < self.population_size:
             parents = []
-            for j in range(2):
-                parents.append(population[roulette_wheel(fitness_scores)])
-            kid1, kid2 = self.create_siblings(parents)
-            kids.append(kid1)
-            kids.append(kid2)
+            parents.append(population[roulette_wheel(fitness_scores)])
+            parents.append(population[roulette_wheel(fitness_scores)])
+            if parents[0] != parents[1]:
+                kid1, kid2 = self.create_siblings(parents)
+                kids.append(kid1)
+                kids.append(kid2)
         return kids
 
     def create_siblings(self, parents):
@@ -148,28 +156,38 @@ class GeneticEvolution:
         return best, score
 
     def neighbourhood_search(self, population):
+        new_population = []
         for pop in population:
-            neighbour = self.dfs(pop)
-            if neighbour is not None:
-                return neighbour
-        return None
+            new_population.append(self.dfs(pop))
+            new_population.append(self.bfs(pop))
+        return new_population
 
     def bfs(self, pop):
         pop_len = len(pop)
+        new_pop = pop
+        pop_score = 0
         for point in range(pop_len):
             new_gene, new_gene_score = self.search(pop, point)
-            if not self.check_stopping_condition(new_gene_score):
-                return new_gene
-        return None
+            # if not self.check_stopping_condition(new_gene_score):
+            #     return new_gene
+            if pop_score < new_gene_score and pop != new_gene:
+                new_pop = new_gene
+                pop_score = new_gene_score
+        return new_pop
 
     def dfs(self, pop):
         pop_len = len(pop)
         new_gene = pop
+        new_pop = pop
+        pop_score = 0
         for point in range(pop_len):
             new_gene, new_gene_score = self.search(new_gene, point)
-            if not self.check_stopping_condition(new_gene_score):
-                return new_gene
-        return None
+            # if not self.check_stopping_condition(new_gene_score):
+            #     return new_gene
+            if pop_score < new_gene_score and pop != new_gene:
+                new_pop = new_gene
+                pop_score = new_gene_score
+        return new_pop, pop_score
 
 
 def sort_by_fitness(population, fitness_scores):
@@ -182,7 +200,7 @@ def sort_by_fitness(population, fitness_scores):
     # sorted_fitness_scores = sorted_fitness_scores / np.sum(sorted_fitness_scores)
     # sorted_fitness_scores = np.cumsum(sorted_fitness_scores)
 
-    return sorted_population, sorted_fitness_scores
+    return list(sorted_population), sorted_fitness_scores
 
 
 def roulette_wheel(fitness_score):
