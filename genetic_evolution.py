@@ -4,7 +4,6 @@ import numpy as np
 from constants import PeptideConstants as pc
 from machine_learning import get_model
 from util import binary_search, mean, adjust_data_onehot, get_peptide_activities
-from util import binary_search, mean
 import multiprocessing as mp
 
 
@@ -115,13 +114,16 @@ class GeneticEvolution:
             kids.append(i)
 
         while len(kids) < self.population_size:
-            parents = []
-            parents.append(population[roulette_wheel(fitness_scores)])
-            parents.append(population[roulette_wheel(fitness_scores)])
-            if parents[0] != parents[1]:
-                kid1, kid2 = self.create_siblings(parents)
+            parent1 = population[roulette_wheel(fitness_scores)]
+            parent2 = population[roulette_wheel(fitness_scores)]
+            if parent1 == parent2:
+                continue
+            kid1, kid2 = self.create_siblings([parent1, parent2])
+            if kid1 not in population:
                 kids.append(kid1)
+            if kid2 not in population:
                 kids.append(kid2)
+
         return kids
 
     def create_siblings(self, parents):

@@ -2,7 +2,6 @@ import inquirer
 from tensorflow import keras
 import pandas as pd
 import matplotlib.pyplot as plt
-from inquirer import Path
 from util import save_fig, get_peptide_activities, adjust_data_onehot, load_data
 import os
 
@@ -81,17 +80,9 @@ if __name__ == '__main__':
                                         choices=choices)
 
     if activity_type == "Other (you will have to provide a dataset)":
-        # LOL dakle ne smijes pogrijesiti prilikom upisivanja patha i imena.
-        # Ako pogriješiš ne radiš delete / go back nego terminiras program
-        # i pocinjes opet
-        questions = [inquirer.Path("data_path",
-                                   message="Enter training dataset path",
-                                   exists=True,
-                                   path_type=Path.FILE),
-                     inquirer.Text("model_name", message="Enter new model name")]
-        answers = inquirer.prompt(questions)
-        neural_network(adjust_data_onehot(load_data(answers["data_path"])),
-                       answers["model_name"])
+        data_path = input("[?] Enter training dataset path: ")
+        model_name = input("[?] Enter new model name: ")
+        neural_network(adjust_data_onehot(load_data(data_path)), model_name)
 
     p = get_performance(activity_type)
     print("MODEL ACCURACY\n_______________")
