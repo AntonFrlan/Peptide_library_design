@@ -4,7 +4,6 @@ import numpy as np
 from constants import PeptideConstants as pc
 from machine_learning import get_model
 from util import binary_search, mean, adjust_data_onehot, get_peptide_activities
-from util import binary_search, mean
 import multiprocessing as mp
 
 
@@ -79,25 +78,23 @@ class GeneticEvolution:
             generation_number += 1
             print()
 
-        # Last solution in the list is the one with best fitness score.
-        print(population[0], population[-1])
-        print(self.fitness_function(population[0]), self.fitness_function(population[-1]),
-              generation_number)
-        solution = population[-1]
-        distance = self.fitness_function(solution)
-
-        return solution, distance  # , max_fitness_list
+        index = next(i for i, fs in enumerate(fitness_scores) if fs > 0.93)
+        for i in range(index, len(population)):
+            print(population[i], fitness_scores[i])
+        return population[index:], fitness_scores[index:]
 
     def generate_random_population(self):
         population = []
-        fitness_score = np.zeros(pc.CONST_GENE_TYPES) + 1. / pc.CONST_GENE_TYPES
-        for i in range(self.population_size):
+        # all aminoacids are equally likely to be chosen
+        probabilities = np.zeros(pc.CONST_GENE_TYPES) + 1. / pc.CONST_GENE_TYPES
+        while len(population) < self.population_size:
             new_len = round(random.random() * pc.CONST_PEPTIDE_MAX_LENGTH)
             gene_size = new_len if pc.CONST_PEPTIDE_MIN_LENGTH < new_len else pc.CONST_PEPTIDE_MIN_LENGTH
             gene = ""
             for j in range(gene_size):
-                gene += pc.CONST_GENES[roulette_wheel(fitness_score)]
-            population.append(gene)
+                gene += pc.CONST_GENES[roulette_wheel(probabilities)]
+            if gene not in population:
+                population.append(gene)
         return population
 
     def evaluate_population(self, population):
@@ -122,14 +119,13 @@ class GeneticEvolution:
 
         lengths = []
         while len(kids) < self.population_size:
-            parents = []
-            parents.append(population[roulette_wheel(fitness_scores)])
-            parents.append(population[roulette_wheel(fitness_scores)])
-            if parents[0] != parents[1]:
-                kid, length = self.create_siblings(parents)
-                kids.append(kid)
-                lengths.append(length)
-                #kids.append(kid2)
+            parent1 = population[roulette_wheel(fitness_scores)]
+            parent2 = population[roulette_wheel(fitness_scores)]
+            if parent1 == parent2:
+                continue
+            kid, length = self.create_siblings([parent1, parent2])
+            kids.append(kid)
+            lengths.append(length)
         print("DONE WITH CHILDREN")
         return list(kids), lengths
 
