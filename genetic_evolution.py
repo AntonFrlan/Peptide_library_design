@@ -1,6 +1,9 @@
 import random
+import inquirer
 import numpy as np
 from constants import PeptideConstants as pc
+from machine_learning import get_model
+from util import binary_search, mean, adjust_data_onehot, get_peptide_activities
 from util import binary_search, mean
 import multiprocessing as mp
 
@@ -8,7 +11,6 @@ import multiprocessing as mp
 class GeneticEvolution:
     def __init__(
             self,
-            fitness_function,
             model,
             population_size=100,
             mutation_probability=0.05,
@@ -18,7 +20,6 @@ class GeneticEvolution:
             neighbourhood_search_percentage=0.05,  # amount of population in search
             number_of_islands=5
     ):
-        self.fitness_function = fitness_function
         self.model = model
         self.population_size = population_size
         self.mutation_probability = mutation_probability
@@ -27,6 +28,13 @@ class GeneticEvolution:
         self.neighbourhood_search_counter = neighbourhood_search_counter
         self.neighbourhood_search_percentage = 1 - neighbourhood_search_percentage
         self.number_of_islands = min(number_of_islands, mp.cpu_count())
+        self.calculate()
+
+    def fitness_function(self, peptide):
+        peptide = [{"sequence": peptide}]
+        peptide = adjust_data_onehot(peptide, False)[0]
+        peptide = peptide.reshape(-1, 1000)
+        return self.model.predict(peptide)
 
     def calculate(self):
         population = self.generate_random_population()
@@ -36,10 +44,9 @@ class GeneticEvolution:
         print(avg_mean)
         neighbourhood_search_counter = 0
 
-        max_fitness_list = []
         generation_number = 1
         print(population[0], population[-1])
-        print(self.fitness_function(population[0], self.model), self.fitness_function(population[-1], self.model),
+        print(self.fitness_function(population[0]), self.fitness_function(population[-1]),
               generation_number)
 
         while self.check_stopping_condition(fitness_scores[-1]) and generation_number <= self.num_generations:
@@ -69,10 +76,10 @@ class GeneticEvolution:
 
         # Last solution in the list is the one with best fitness score.
         print(population[0], population[-1])
-        print(self.fitness_function(population[0], self.model), self.fitness_function(population[-1], self.model),
+        print(self.fitness_function(population[0]), self.fitness_function(population[-1]),
               generation_number)
         solution = population[-1]
-        distance = self.fitness_function(solution, self.model)
+        distance = self.fitness_function(solution)
 
         return solution, distance  # , max_fitness_list
 
@@ -92,7 +99,7 @@ class GeneticEvolution:
         fitness_scores = []
 
         for solution in population:
-            total_distance = self.fitness_function(solution, self.model)
+            total_distance = self.fitness_function(solution)
             fitness_scores.append(total_distance)
 
         return fitness_scores
@@ -149,7 +156,7 @@ class GeneticEvolution:
         for i in pc.CONST_GENES:
             if i != gene[point]:
                 new_gene = gene[:point] + i + gene[point + 1:] if point + 1 < len(gene) else gene[:point] + i
-                new_score = self.fitness_function(gene, self.model)
+                new_score = self.fitness_function(gene)
                 if score < new_score:
                     score = new_score
                     best = new_gene
@@ -213,3 +220,9 @@ def roulette_wheel(fitness_score):
     if spot < 0:
         raise ValueError('In RouletteWheel BinarySearch return a number lower than 0 => ' + str(spot))
     return spot
+
+
+if __name__ == '__main__':
+    peptide_activity = inquirer.list_input(message="Select peptide activity:",
+                                           choices=get_peptide_activities())
+    GeneticEvolution(get_model(peptide_activity))
