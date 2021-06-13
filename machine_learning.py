@@ -44,9 +44,9 @@ def neural_network(data, peptide_type, validation_data_len=0.1):
     model.add(keras.layers.Dense(10, activation="sigmoid"))
     model.add(keras.layers.Dense(1, activation="sigmoid"))
 
-    model.compile(loss="mean_squared_error",
+    model.compile(loss="mse",
                   optimizer="adam",
-                  metrics=["mean_absolute_error"])
+                  metrics=["TrueNegatives", "TruePositives"])
 
     history = model.fit(sequence_train, label_train, epochs=12, batch_size=32, workers=1,
                         validation_data=(sequence_valid, label_valid), shuffle=True)
