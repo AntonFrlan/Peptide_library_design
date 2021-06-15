@@ -8,6 +8,7 @@ import os
 
 def get_performance(peptide_type):
     txt_path = os.path.join(os.getcwd(), "models", peptide_type + ".txt")
+    print(txt_path)
     try:
         file = open(txt_path, 'r')
         lines = file.readlines()
@@ -46,14 +47,14 @@ def neural_network(data, peptide_type, validation_data_len=0.1):
 
     model.compile(loss="mse",
                   optimizer="adam",
-                  metrics=["TrueNegatives", "TruePositives"])
+                  metrics=["mean_absolute_error", "TrueNegatives", "TruePositives"])
 
     history = model.fit(sequence_train, label_train, epochs=12, batch_size=32, workers=1,
                         validation_data=(sequence_valid, label_valid), shuffle=True)
     pd.DataFrame(history.history).plot(figsize=(8, 5))
     plt.grid(True)
     plt.gca().set_ylim(0, 1)
-    save_fig("d_2" + peptide_type)
+    save_fig(peptide_type)
 
     filepath = os.path.join(os.getcwd(), "models", peptide_type + ".h5")
     model.save(filepath)
@@ -83,6 +84,7 @@ if __name__ == '__main__':
         data_path = input("[?] Enter training dataset path: ")
         model_name = input("[?] Enter new model name: ")
         neural_network(adjust_data_onehot(load_data(data_path)), model_name)
+        activity_type = model_name
 
     p = get_performance(activity_type)
     print("MODEL ACCURACY\n_______________")
