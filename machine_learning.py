@@ -51,7 +51,10 @@ def neural_network(data, peptide_type, validation_data_len=0.1):
 
     history = model.fit(sequence_train, label_train, epochs=12, batch_size=32, workers=1,
                         validation_data=(sequence_valid, label_valid), shuffle=True)
-    pd.DataFrame(history.history).plot(figsize=(8, 5))
+
+    df = pd.DataFrame(history.history)
+    df_plot = df.drop(['true_negatives', 'true_positives', 'val_true_negatives', 'val_true_positives'], axis=1)
+    df_plot.plot(figsize=(8, 5))
     plt.grid(True)
     plt.gca().set_ylim(0, 1)
     save_fig(peptide_type)
@@ -77,7 +80,7 @@ def neural_network(data, peptide_type, validation_data_len=0.1):
 if __name__ == '__main__':
     choices = get_peptide_activities()
     choices.append("Other (you will have to provide a dataset)")
-    activity_type = inquirer.list_input(message="Select peptide activity",
+    activity_type = inquirer.list_input(message="Select machine learning model",
                                         choices=choices)
 
     if activity_type == "Other (you will have to provide a dataset)":
