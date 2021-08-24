@@ -2,7 +2,7 @@ import inquirer
 from tensorflow import keras
 import pandas as pd
 import matplotlib.pyplot as plt
-from util import save_fig, get_peptide_activities, adjust_data_onehot, load_data
+from util import save_fig, get_peptide_activities, adjust_data_onehot, load_data, two_datasets
 import os
 
 
@@ -75,9 +75,18 @@ def neural_network(data, peptide_type, validation_data_len=0.1):
     for line in lines:
         file.write(line)
     file.close()
+    return model
 
 
 if __name__ == '__main__':
+    # data_seq1, data_lab1, data_seq2, data_lab2 = two_datasets(load_data("./generated_datasets/antimicrobial.csv"))
+    # model1 = neural_network((data_seq1, data_lab1), "microbial1")
+    # model2 = neural_network((data_seq2, data_lab2), "microbial2")
+    # print(1 - model1.evaluate(data_seq2, data_lab2)[1])
+    # print(1 - model2.evaluate(data_seq1, data_lab1)[1])
+    # print(get_performance("microbial1"))
+    # print(get_performance("microbial2"))
+
     choices = get_peptide_activities()
     choices.append("Other (you will have to provide a dataset)")
     activity_type = inquirer.list_input(message="Select machine learning model",
