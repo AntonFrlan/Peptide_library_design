@@ -119,8 +119,8 @@ def adjust_data(old_data, scale):
 
 
 def adjust_data_onehot(old_data, label=True):
-    data_seq = np.zeros(shape=[len(old_data), 1000], dtype=int)
-    data_lab = np.zeros(shape=[len(old_data), 1], dtype=int)
+    data_sequence = np.zeros(shape=[len(old_data), 1000], dtype=int)  # why a thousand? magic number?
+    data_label = np.zeros(shape=[len(old_data), 1], dtype=int)
     char_to_int = dict((c, i) for i, c in enumerate(pc.CONST_GENES))
     br = -1
 
@@ -135,10 +135,11 @@ def adjust_data_onehot(old_data, label=True):
             except:
                 break
         br += 1
-        data_seq[br] = new_seq.flatten()
+        data_sequence[br] = new_seq.flatten()
         if label and old_data[peptide]["label"] == "1":
-            data_lab[br] = 1
-    return data_seq, data_lab
+            data_label[br] = 1
+    return data_sequence, data_label
+
 
 
 def mean(array):
@@ -177,12 +178,12 @@ def plot_results():
     ax.bar(x - width / 2, train, width, label='train', zorder=3)
     ax.bar(x + width / 2, valid, width, label='valid', zorder=3)
 
-    ax.set_ylabel('accuracy')
-    ax.set_title('Accuracy for every model - train and validation set')
+    plt.ylim(bottom=0.75)
+    ax.set_ylabel('Accuracy')
+   # ax.set_title('Accuracy for every model - train and validation set')
     ax.set_xticks(x)
     ax.set_xticklabels(ds_name)
     ax.legend()
     fig.tight_layout()
 
     plt.show()
-    return

@@ -6,6 +6,7 @@ from machine_learning import get_model
 from util import binary_search, mean, adjust_data_onehot, get_peptide_activities
 import multiprocessing as mp
 
+
 class tt:
     def __init__(
             self,
@@ -32,9 +33,11 @@ class tt:
         self.genenetions_on_island = generations_on_island
 
 
+# what is this
 class Test:
     def __init__(self):
         self.t = 9
+
     def square(self, x):
         rj = []
         for i in x:
@@ -43,6 +46,7 @@ class Test:
                 if j * j > self.t:
                     print(":O", x[0])
         return rj
+
 
 class GeneticEvolution:
     def __init__(
